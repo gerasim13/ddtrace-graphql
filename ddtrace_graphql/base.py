@@ -1,9 +1,11 @@
+import asyncio
 import logging
 import os
 
 import ddtrace
 import graphql
 from ddtrace.ext import errors as ddtrace_errors
+from promise import Promise
 
 from ddtrace_graphql import utils
 
@@ -66,6 +68,8 @@ def traced_graphql_wrapped(
         result = None
         try:
             result = func(*args, **kwargs)
+            if isinstance(result, Promise):
+                result = result.get()
             return result
         finally:
             # `span.error` must be integer
